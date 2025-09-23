@@ -1,29 +1,23 @@
-const orderSchema = require('../validation/order');
-const userSchema = require('../validation/user');
-const productSchema = require('../validation/product');
+const Ajv = require('ajv');
 
-const valdiateOrder = (req, res, next) => {
-  const data = req.body;
+const ajv = new Ajv({ coerceTypes: true });
 
-  const isValid = orderSchema(data);
-  req.isValid = isValid;
-  next();
-};
+function validate(schema) {
+  const validateFn = ajv.compile(schema);
 
-const valdiateUser = (req, res, next) => {
-  const data = req.body;
+  return (req, res, next) => {
+    const valid = validateFn(req.body);
+    if (!valid) {
+      return res.status(400).json({
+        status: 'error',
+        errors: validateFn.errors.map((err) => ({
+          field: err.instancePath || err.schemaPath,
+          message: err.message,
+        })),
+      });
+    }
+    next();
+  };
+}
 
-  const isValid = userSchema(data);
-  req.isValid = isValid;
-  next();
-};
-
-const valdiateProduct = (req, res, next) => {
-  const data = req.body;
-
-  const isValid = productSchema(data);
-  req.isValid = isValid;
-  next();
-};
-
-module.exports = { valdiateUser, valdiateProduct, valdiateOrder };
+module.exports = validate;

@@ -1,0 +1,21 @@
+<h1>Edit Order</h1>
+<form action="/orders/<%= order._id %>/edit" method="POST">
+  <label>Status:</label>
+  <select name="status">
+    <option value="pending" <%= order.status === "pending" ? "selected" : "" %>>Pending</option>
+    <option value="completed" <%= order.status === "completed" ? "selected" : "" %>>Completed</option>
+    <option value="cancelled" <%= order.status === "cancelled" ? "selected" : "" %>>Cancelled</option>
+  </select>
+
+  <h3>Products:</h3>
+  <% products.forEach(p => { %>
+    <label>
+      <input type="checkbox" name="products" value="<%= p._id %>"
+        <%= order.products.some(op => op._id.toString() === p._id.toString()) ? "checked" : "" %> />
+      <%= p.name %> - $<%= p.price %>
+    </label><br>
+  <% }) %>
+
+  <button type="submit">Update</button>
+</form>
+<a href="/orders">Cancel</a>

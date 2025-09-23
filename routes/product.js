@@ -1,56 +1,63 @@
 const express = require('express');
-
 const Product = require('../models/product');
+const validate = require('../middlewares/validation');
+const productSchema = require('../schemas/product');
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
-  const newProduct = new Product(req.body);
-  const saved = await newProduct.save();
-
-  res.status(201).json({ data: saved });
-});
-
+// Show all products
 router.get('/', async (req, res) => {
   const products = await Product.find({});
-
-  res.status(200).json({ data: products, results: products.length });
+  res.render('products', { products });
 });
 
+// Show single product
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-
   const product = await Product.findById(id);
 
   if (!product) {
-    res.status(404).json({ message: `No Product for this Id ${id}` });
+    return res
+      .status(404)
+      .render('404', { message: `No Product for this Id ${id}` });
   }
 
-  res.status(200).json({ data: product });
+  res.render('productDetails', { product });
 });
 
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
-
-  const updatedProduct = await Product.findByIdAndUpdate(id, req.body, { new: true });
-
-  if (!updatedProduct) {
-    res.status(404).json({ message: `No Product for this Id ${id}` });
-  }
-
-  res.status(200).json({ data: updatedProduct ,});
+// Add new product (form submit)
+router.post('/', validate(productSchema), async (req, res) => {
+  const newProduct = new Product(req.body);
+  await newProduct.save();
+  res.redirect('/products');
 });
 
-router.delete('/:id', async (req, res) => {
+// Show edit form
+router.get('/:id/edit', async (req, res) => {
   const { id } = req.params;
+  const product = await Product.findById(id);
 
-  const productToDelete = await Product.findByIdAndDelete(id);
-
-  if (!productToDelete) {
-    res.status(404).json({ message: `No Product for this Id ${id}` });
+  if (!product) {
+    return res
+      .status(404)
+      .render('404', { message: `No Product for this Id ${id}` });
   }
 
-  res.status(204).json();
+  res.render('editProduct', { product });
+});
+
+// Update product
+router.post('/:id/edit', async (req, res) => {
+  const { id } = req.params;
+  await Product.findByIdAndUpdate(id, req.body, { new: true });
+  res.redirect('/products');
+});
+
+// Delete product
+router.post('/:id/delete', async (req, res) => {
+  const { id } = req.params;
+  await Product.findByIdAndDelete(id);
+  res.redirect('/products');
 });
 
 module.exports = router;

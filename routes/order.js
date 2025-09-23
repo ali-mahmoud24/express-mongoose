@@ -1,64 +1,79 @@
 const express = require('express');
-
 const Order = require('../models/order');
-
-const { valdiateOrder } = require('../middlewares/validation');
+const Product = require('../models/product');
+const validate = require('../middlewares/validation');
+const orderSchema = require('../schemas/order');
 
 const router = express.Router();
 
-const validate = router.post('/', valdiateOrder, async (req, res) => {
-  console.log( valdiateOrder.errors);
-  if (!req.isValid) {
-    return res.status(400).json({ errors: valdiateOrder.errors });
-  }
-  const newOrder = new Order(req.body);
-  const saved = await newOrder.save();
+// Middleware to calculate total price
+const calculateOrderTotalPrice = async (req, res, next) => {
+  const products = await Product.find({ _id: { $in: req.body.products } });
+  const totalPrice = products.reduce((sum, p) => sum + p.price, 0);
+  req.body.totalPrice = totalPrice;
+  next();
+};
 
-  res.status(201).json({ data: saved });
-});
-
+// Show all orders
 router.get('/', async (req, res) => {
-  const orders = await Order.find({}).populate('products');
+  const orders = await Order.find({}).populate('user').populate('products');
 
-  res.status(200).json({ data: orders, results: orders.length });
+  res.render('orders', { orders });
 });
 
+// Show single order
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
+  const order = await Order.findById(id).populate('user').populate('products');
 
+  if (!order) {
+    return res
+      .status(404)
+      .render('404', { message: `No Order for this Id ${id}` });
+  }
+
+  res.render('orderDetails', { order });
+});
+
+// Create new order
+router.post(
+  '/',
+  validate(orderSchema),
+  calculateOrderTotalPrice,
+  async (req, res) => {
+    const newOrder = new Order(req.body);
+    await newOrder.save();
+    res.redirect('/orders');
+  }
+);
+
+// Show edit form
+router.get('/:id/edit', async (req, res) => {
+  const { id } = req.params;
   const order = await Order.findById(id).populate('products');
 
   if (!order) {
-    res.status(404).json({ message: `No Order for this Id ${id}` });
+    return res
+      .status(404)
+      .render('404', { message: `No Order for this Id ${id}` });
   }
 
-  res.status(200).json({ data: document });
+  const products = await Product.find({});
+  res.render('editOrder', { order, products });
 });
 
-router.put('/:id', async (req, res) => {
+// Update order
+router.post('/:id/edit', calculateOrderTotalPrice, async (req, res) => {
   const { id } = req.params;
-
-  const updatedUser = await Order.findByIdAndUpdate(id, req.body, {
-    new: true,
-  });
-
-  if (!updatedUser) {
-    res.status(404).json({ message: `No User for this Id ${id}` });
-  }
-
-  res.status(200).json({ data: updatedUser });
+  await Order.findByIdAndUpdate(id, req.body, { new: true });
+  res.redirect('/orders');
 });
 
-router.delete('/:id', async (req, res) => {
+// Delete order
+router.post('/:id/delete', async (req, res) => {
   const { id } = req.params;
-
-  const orderToDelete = await Order.findByIdAndDelete(id);
-
-  if (!orderToDelete) {
-    res.status(404).json({ message: `No Order for this Id ${id}` });
-  }
-
-  res.status(204).json();
+  await Order.findByIdAndDelete(id);
+  res.redirect('/orders');
 });
 
 module.exports = router;

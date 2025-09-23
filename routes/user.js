@@ -1,56 +1,68 @@
 const express = require('express');
 
 const User = require('../models/user');
+const validate = require('../middlewares/validation');
+const userSchema = require('../schemas/user');
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
-  const newUser = new User(req.body);
-  const saved = await newUser.save();
-
-  res.status(201).json({ data: saved });
-});
-
+// Show all users
 router.get('/', async (req, res) => {
   const users = await User.find({});
-
-  res.status(200).json({ data: users, results: users.length });
+  res.render('users', { users });
 });
 
+// Show single user
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-
   const user = await User.findById(id);
 
   if (!user) {
-    res.status(404).json({ message: `No User for this Id ${id}` });
+    return res
+      .status(404)
+      .render('404', { message: `No User for this Id ${id}` });
   }
 
-  res.status(200).json({ data: user });
+  res.render('userDetails', { user });
 });
 
-router.put('/:id', async (req, res) => {
+// Create new user (form submit)
+router.post(
+  '/',
+  validate(userSchema), // then validate
+  async (req, res) => {
+    const newUser = new User(req.body);
+    await newUser.save();
+    res.redirect('/users');
+  }
+);
+
+// Show edit form
+router.get('/:id/edit', async (req, res) => {
   const { id } = req.params;
+  const user = await User.findById(id);
 
-  const updatedUser = await User.findByIdAndUpdate(id, req.body, { new: true });
-
-  if (!updatedUser) {
-    res.status(404).json({ message: `No User for this Id ${id}` });
+  if (!user) {
+    return res
+      .status(404)
+      .render('404', { message: `No User for this Id ${id}` });
   }
 
-  res.status(200).json({ data: updatedUser });
+  res.render('editUser', { user });
 });
 
-router.delete('/:id', async (req, res) => {
+// Update user
+router.post('/:id/edit', async (req, res) => {
   const { id } = req.params;
+  await User.findByIdAndUpdate(id, req.body, { new: true });
+  res.redirect('/users');
+});
 
-  const userToDelete = await User.findByIdAndDelete(id);
-
-  if (!userToDelete) {
-    res.status(404).json({ message: `No User for this Id ${id}` });
-  }
-
-  res.status(204).json();
+// Delete user
+router.post('/:id/delete', async (req, res) => {
+  const { id } = req.params;
+  await User.findByIdAndDelete(id);
+  res.redirect('/users');
 });
 
 module.exports = router;

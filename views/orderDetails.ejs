@@ -1,0 +1,13 @@
+<h1>Order Details</h1>
+<p><strong>Status:</strong> <%= order.status %></p>
+<p><strong>User:</strong> <%= order.user ? order.user.name : "N/A" %></p>
+
+<h3>Products:</h3>
+<ul>
+  <% order.products.forEach(p => { %>
+    <li><%= p.name %> - $<%= p.price %></li>
+  <% }) %>
+</ul>
+
+<p><strong>Total Price:</strong> $<%= order.totalPrice %></p>
+<a href="/orders">Back to Orders</a>

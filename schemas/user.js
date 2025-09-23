@@ -1,6 +1,3 @@
-const Ajv = require('ajv');
-const ajv = new Ajv();
-
 const schema = {
   type: 'object',
   properties: {
@@ -11,5 +8,4 @@ const schema = {
   additionalProperties: false,
 };
 
-const validate = ajv.compile(schema);
-module.exports = validate;
+module.exports = schema;

@@ -1,3 +1,5 @@
+<%- include('../partials/header') %>
+
 <h1>Edit Order</h1>
 <form action="/orders/<%= order._id %>/edit" method="POST">
   <label>Status:</label>
@@ -19,3 +21,5 @@
   <button type="submit">Update</button>
 </form>
 <a href="/orders">Cancel</a>
+
+<%- include('../partials/footer') %>

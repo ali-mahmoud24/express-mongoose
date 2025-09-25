@@ -8,7 +8,7 @@ const router = express.Router();
 // Show all products
 router.get('/', async (req, res) => {
   const products = await Product.find({});
-  res.render('products', { products });
+  res.render('./products/products', { products });
 });
 
 // Show single product
@@ -22,7 +22,7 @@ router.get('/:id', async (req, res) => {
       .render('404', { message: `No Product for this Id ${id}` });
   }
 
-  res.render('productDetails', { product });
+  res.render('./products/productDetails', { product });
 });
 
 // Add new product (form submit)
@@ -43,7 +43,7 @@ router.get('/:id/edit', async (req, res) => {
       .render('404', { message: `No Product for this Id ${id}` });
   }
 
-  res.render('editProduct', { product });
+  res.render('./products/editProduct', { product });
 });
 
 // Update product

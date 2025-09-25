@@ -18,7 +18,7 @@ const calculateOrderTotalPrice = async (req, res, next) => {
 router.get('/', async (req, res) => {
   const orders = await Order.find({}).populate('user').populate('products');
 
-  res.render('orders', { orders });
+  res.render('./orders/orders', { orders });
 });
 
 // Show single order
@@ -32,7 +32,7 @@ router.get('/:id', async (req, res) => {
       .render('404', { message: `No Order for this Id ${id}` });
   }
 
-  res.render('orderDetails', { order });
+  res.render('./orders/orderDetails', { order });
 });
 
 // Create new order
@@ -59,7 +59,7 @@ router.get('/:id/edit', async (req, res) => {
   }
 
   const products = await Product.find({});
-  res.render('editOrder', { order, products });
+  res.render('./orders/editOrder', { order, products });
 });
 
 // Update order

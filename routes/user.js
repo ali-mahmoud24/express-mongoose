@@ -9,7 +9,7 @@ const router = express.Router();
 // Show all users
 router.get('/', async (req, res) => {
   const users = await User.find({});
-  res.render('users', { users });
+  res.render('./users/users', { users });
 });
 
 // Show single user
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
       .render('404', { message: `No User for this Id ${id}` });
   }
 
-  res.render('userDetails', { user });
+  res.render('./users/userDetails', { user });
 });
 
 // Create new user (form submit)
@@ -48,7 +48,7 @@ router.get('/:id/edit', async (req, res) => {
       .render('404', { message: `No User for this Id ${id}` });
   }
 
-  res.render('editUser', { user });
+  res.render('./users/editUser', { user });
 });
 
 // Update user

@@ -1,0 +1,24 @@
+<%- include('../partials/header') %>
+<h1>Orders</h1>
+
+<ul>
+  <% orders.forEach(order => { %>
+  <li>
+    <a href="/orders/<%= order._id %>">
+      Order #<%= order._id %> - <%= order.status %>
+    </a>
+    (Total: $<%= order.totalPrice %>)
+    <div class="actions">
+      <a class="edit-btn" href="/orders/<%= order._id %>/edit">Edit</a>
+      <form
+        action="/orders/<%= order._id %>/delete"
+        method="POST"
+        style="display: inline"
+      >
+        <button class="delete-btn" type="submit">Delete</button>
+      </form>
+    </div>
+  </li>
+  <% }) %>
+</ul>
+<%- include('../partials/footer') %>
